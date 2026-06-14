@@ -1,24 +1,41 @@
-name: Build & Deploy Pages
+name: 自动构建与部署
+
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master # 监听 master 分支的推送
+
+# 关键：这里显式声明了流水线拥有写权限
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
+
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node
+      # 1. 拉取仓库代码
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      # 2. 安装 Node.js 环境
+      - name: Setup Node.js ⚙️
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install
-      - run: npm run build
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v4
+          cache: 'npm'
+
+      # 3. 安装项目依赖
+      - name: Install Dependencies 🔧
+        run: npm install
+
+      # 4. 运行 Vite 打包
+      - name: Build Project 🏗️
+        run: npm run build
+
+      # 5. 部署到 gh-pages 分支
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          folder: dist # Vite 打包出来的文件夹叫 dist
+          branch: gh-pages # 部署到 gh-pages 分支（会自动创建）
